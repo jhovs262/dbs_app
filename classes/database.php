@@ -6,7 +6,7 @@ class database{
     function opencon(): PDO{
         return new PDO(
     dsn: 'mysql:host=localhost;
-    dbname=librarymanagementsystem',
+    dbname=dbs_app',
     username: 'root',
     password: ''); 
 
@@ -69,5 +69,28 @@ class database{
         }
     }
 
+    function viewBorrowerUser(){
+        $con = $this->opencon();
+        return $con->query("SELECT * from Borrowers")->fetchAll();
+    }
+
+    function insertBorrowerAddress($borrower_id,$house_number,$street,$barangay,$city,$province,$postal_code,$is_primary){
+        $con = $this->opencon();
+
+        try{
+            $con->beginTransaction();
+            $stmt = $con->prepare('INSERT INTO BorrowerAddress (borrower_id,ba_house_number,ba_street,ba_barangay,ba_city,ba_province,ba_postal_code,is_primary) VALUES (?,?,?,?,?,?,?,?)');
+            $stmt->execute([$borrower_id,$house_number,$street,$barangay,$city,$province,$postal_code,$is_primary]);
+            $borrower_id = $con->lastInsertId();
+            $con->commit();
+            return $borrower_id;
+
+        }catch(PDOException $e){  
+            if($con->inTransaction()){
+                $con->rollBack();
+            }
+            throw $e;
+        }
+    }
 
 }
