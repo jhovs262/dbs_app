@@ -1,12 +1,109 @@
-<!doctype html>
+<?php
+require_once('../classes/database.php');
+$con = new database();
+
+$allusers = $con->viewBooks();
+
+$bookAddStatus = null;
+$bookaAddMessage = '';
+ 
+if(isset($_POST['add_book'])){
+
+  $title = $_POST['book_title'];
+  $isbn = $_POST['book_isbn'];
+  $pub_year = $_POST['book_publication_year'];
+  $edition = $_POST['book_edition'];
+  $publisher = $_POST['book_publisher'];
+ 
+ 
+  try {
+    $book_id = $con->insertBook($title, $isbn, $pub_year, $edition, $publisher);
+
+    $bookAddStatus = 'success';
+    $bookAddMessage = 'Book added successfully.';
+
+} catch (Exception $e) {
+    $bookAddStatus = 'error';
+    $bookAddMessage = 'Error adding book.';
+}
+}
+
+$bookAddCopyStatus = null;
+$bookAddCopyMessage = '';
+ 
+if(isset($_POST['add_copy'])){
+ 
+  $book = $_POST['book_id'];
+  $status = $_POST['bc_status'];
+
+  try {
+    $copy_id = $con->insertBookCopy($book, $status);
+
+    $bookAddStatus = 'success';
+    $bookAddMessage = 'Book added successfully.';
+
+} catch (Exception $e) {
+    $bookAddStatus = 'error';
+    $bookAddMessage = 'Error adding book.';
+}
+}
+$bookAuthorStatus = null;
+$bookAuthorMessage = '';
+
+if(isset($_POST['assign_author'])){
+
+  $S_book = $_POST['book_id'];
+  $author = $_POST['author_id'];
+
+ try {
+    $baba_id = $con->insertBookAuthors($S_book, $author);
+
+    $bookAuthorStatus = 'success';
+    $bookAuthorMessage = 'Book added successfully.';
+
+} catch (Exception $e) {
+    $bookAuthorStatus = 'error';
+    $bookAuthorMessage = 'Error adding book.';
+}
+
+}
+$bookGenreStatus = null;
+$bookGenreMessage = '';
+
+if(isset($_POST['assign_genre'])){
+
+  $g_book = $_POST['book_id'];
+  $book_g = $_POST['genre_id'];
+
+ try {
+    $gb_id = $con->insertBookGenre($g_book, $book_g);
+
+    $bookGenreStatus = 'success';
+    $bookGenreMessage = 'Book added successfully.';
+
+} catch (Exception $e) {
+    $bookGenreStatus = 'error';
+    $bookGenreMessage = 'Error adding book.';
+}
+
+}
+?>
+ 
+ 
+
+
+
+
+ <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Books — Admin</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"> -->
   <link rel="stylesheet" href="../assets/css/style.css">
-  <link rel="stylesheet" href="../bootstrap 5.3.3 dist/css/bootstrap.css">
+  <link rel="stylesheet" href="../bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../sweetalert/dist/sweetalert2.css">
 </head>
 <body>
 <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top">
@@ -61,7 +158,7 @@
             <label class="form-label">Publisher</label>
             <input class="form-control" name="book_publisher" placeholder="optional">
           </div>
-          <button class="btn btn-primary w-100" type="submit">Save Book</button>
+          <button name="add_book" class="btn btn-primary w-100" type="submit">Save Book</button>
         </form>
       </div>
 
@@ -74,16 +171,17 @@
             <label class="form-label">Book</label>
             <select class="form-select" name="book_id" required>
               <option value="">Select book</option>
-              <option value="1">Noli Me Tangere</option>
-              <option value="2">El Filibusterismo</option>
-              <option value="3">Mga Ibong Mandaragit</option>
-              <option value="4">Smaller and Smaller Circles</option>
-              <option value="5">Dekada ’70</option>
+              <?php
+              foreach($allusers as $books){
+              echo '<option value="'.$books['book_id'].'">'.$books['book_title'].'</option>';
+              }
+              ?>
             </select>
           </div>
           <div class="mb-3">
             <label class="form-label">Status</label>
-            <select class="form-select" name="status" required>
+            <select class="form-select" name="bc_status" required>
+            <option value="">Set Status</option>
               <option value="AVAILABLE">AVAILABLE</option>
               <option value="ON_LOAN">ON_LOAN</option>
               <option value="LOST">LOST</option>
@@ -91,7 +189,7 @@
               <option value="REPAIR">REPAIR</option>
             </select>
           </div>
-          <button class="btn btn-outline-primary w-100" type="submit">Add Copy</button>
+          <button name="add_copy" class="btn btn-outline-primary w-100" type="submit">Add Copy</button>
         </form>
       </div>
     </div>
@@ -124,32 +222,25 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>1</td>
-                <td>Noli Me Tangere</td>
-                <td>9789710810736</td>
-                <td>1887</td>
-                <td>National Book Store</td>
-                <td>3</td>
-                <td><span class="badge text-bg-success">2</span></td>
-                <td class="text-end">
-                  <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editBookModal">Edit</button>
-                  <button class="btn btn-sm btn-outline-danger">Delete</button>
-                </td>
-              </tr>
-              <tr>
-                <td>4</td>
-                <td>Smaller and Smaller Circles</td>
-                <td>9789712721768</td>
-                <td>2002</td>
-                <td>Ateneo de Manila University Press</td>
-                <td>2</td>
-                <td><span class="badge text-bg-warning">1</span></td>
-                <td class="text-end">
-                  <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editBookModal">Edit</button>
-                  <button class="btn btn-sm btn-outline-danger">Delete</button>
-                </td>
-              </tr>
+              <?php
+              $viewcopies = $con->viewCopies();
+              foreach($viewcopies as $vw){
+              echo'<tr>';
+                echo'<td>'.$vw['book_id'].'</td>';
+                echo'<td>'.$vw['book_title'].'</td>';
+                echo'<td>'.$vw['book_isbn'].'</td>';
+                echo'<td>'.$vw['book_publication_year'].'</td>';
+                echo'<td>'.$vw['book_publisher'].'</td>';
+                echo'<td>'.$vw['Copies'].'</td>';
+                echo'<td>'.$vw['Available_Copies'].'</td>';
+                echo' <td class="text-end">';
+                  echo'<button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editBookModal">Edit</button>';
+                  echo'<button class="btn btn-sm btn-outline-danger">Delete</button>';
+                echo'</td>';
+              echo'</tr>';
+              }
+              ?>
+              
             </tbody>
           </table>
         </div>
@@ -166,8 +257,11 @@
                 <div class="col-12 col-md-6">
                   <select class="form-select" name="book_id" required>
                     <option value="">Select book</option>
-                    <option value="1">Noli Me Tangere</option>
-                    <option value="2">El Filibusterismo</option>
+                    <?php
+                    foreach($allusers as $books){
+                    echo '<option value="'.$books['book_id'].'">'.$books['book_title'].'</option>';
+                  }
+              ?>
                   </select>
                 </div>
                 <div class="col-12 col-md-6">
@@ -176,10 +270,12 @@
                     <option value="1">Jose Rizal</option>
                     <option value="2">Amado Hernandez</option>
                     <option value="3">F. H. Batacan</option>
+                    <option value="3">B. S. Doms</option>
+                    <option value="3">Doroja James</option>
                   </select>
                 </div>
                 <div class="col-12">
-                  <button class="btn btn-outline-primary w-100" type="submit">Assign</button>
+                  <button name="assign_author"class="btn btn-outline-primary w-100" type="submit">Assign</button>
                 </div>
               </form>
               <div class="small-muted mt-2">Unique constraint prevents duplicate (book_id, author_id).</div>
@@ -195,19 +291,23 @@
                 <div class="col-12 col-md-6">
                   <select class="form-select" name="book_id" required>
                     <option value="">Select book</option>
-                    <option value="1">Noli Me Tangere</option>
-                    <option value="2">El Filibusterismo</option>
+                    <?php
+                    foreach($allusers as $books){
+                    echo '<option value="'.$books['book_id'].'">'.$books['book_title'].'</option>';
+                    }
+                    ?>
                   </select>
                 </div>
                 <div class="col-12 col-md-6">
                   <select class="form-select" name="genre_id" required>
                     <option value="">Select genre</option>
                     <option value="1">Classic</option>
-                    <option value="5">Philippine Literature</option>
+                    <option value="2">Historical Fiction</option>
+      
                   </select>
                 </div>
                 <div class="col-12">
-                  <button class="btn btn-outline-primary w-100" type="submit">Assign</button>
+                  <button name="assign_genre"class="btn btn-outline-primary w-100" type="submit">Assign</button>
                 </div>
               </form>
               <div class="small-muted mt-2">Unique constraint prevents duplicate (genre_id, book_id).</div>
@@ -250,6 +350,96 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../sweetalert/dist/sweetalert2.js"></script>
+
+<script>
+ 
+  const addStatus = <?php echo json_encode($bookAddStatus)?>;
+  const addMessage = <?php echo json_encode($bookAddMessage)?>;
+ 
+  if(addStatus == 'success'){
+    Swal.fire({
+    icon: 'success',
+    title: 'Success',
+      text: addMessage,
+      confirmButtonText: 'OK'
+    });
+  }else if(addStatus == 'error'){
+    Swal.fire({
+    icon: 'error',
+    title: 'Error',
+      text: addMessage,
+      confirmButtonText: 'OK'
+    });
+  }
+ 
+</script>
+
+<script>
+ 
+  const copyStatus = <?php echo json_encode($bookAddCopyStatus)?>;
+  const copyMessage = <?php echo json_encode($bookAddCopyMessage)?>;
+ 
+  if(copyStatus == 'success'){
+    Swal.fire({
+    icon: 'success',
+    title: 'Success',
+      text: copyMessage,
+      confirmButtonText: 'OK'
+    });
+  }else if(copyStatus == 'error'){
+    Swal.fire({
+    icon: 'error',
+    title: 'Error',
+      text: copyMessage,
+      confirmButtonText: 'OK'
+    });
+  }
+</script>
+
+<script>
+ 
+  const authorStatus = <?php echo json_encode($bookAuthorStatus)?>;
+  const authorMessage = <?php echo json_encode($bookAuthorMessage)?>;
+ 
+  if(authorStatus == 'success'){
+    Swal.fire({
+    icon: 'success',
+    title: 'Success',
+      text: authorMessage,
+      confirmButtonText: 'OK'
+    });
+  }else if(authorStatus == 'error'){
+    Swal.fire({
+    icon: 'error',
+    title: 'Error',
+      text: authorMessage,
+      confirmButtonText: 'OK'
+    });
+  }
+</script>
+
+<script>
+ 
+  const genreStatus = <?php echo json_encode($bookGenreStatus)?>;
+  const genreMessage = <?php echo json_encode($bookGenreMessage)?>;
+ 
+  if(genreStatus == 'success'){
+    Swal.fire({
+    icon: 'success',
+    title: 'Success',
+      text: genreMessage,
+      confirmButtonText: 'OK'
+    });
+  }else if(genreStatus == 'error'){
+    Swal.fire({
+    icon: 'error',
+    title: 'Error',
+      text: genreMessage,
+      confirmButtonText: 'OK'
+    });
+  }
+</script>
 </body>
 </html>
